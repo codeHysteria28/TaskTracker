@@ -44,6 +44,12 @@ internal class Program
                 DeleteTask(taskIdToDelete, fullPath);
                 break;
             case "list":
+                if(args.Length > 1)
+                {
+                    string status = args[1];
+                    ListAllTasks(fullPath, status);
+                    break;
+                }
                 ListAllTasks(fullPath);
                 break;
             case "mark-in-progress":
@@ -195,6 +201,57 @@ internal class Program
                     }
                 }
             } else
+            {
+                Console.WriteLine("No tasks found.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occured: {ex.Message}");
+        }
+    }
+
+    // List all tasks by status
+    public static void ListAllTasks(string path, string status)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                string existingJson = File.ReadAllText(path);
+                taskList = JsonSerializer.Deserialize<TaskList>(existingJson) ?? new TaskList();
+
+                if (taskList.Tasks.Count == 0)
+                {
+                    Console.WriteLine("No tasks found.");
+                }
+                else
+                {
+                    bool tasksFound = false;
+                    foreach (var task in taskList.Tasks)
+                    {
+                        if(task.Status.Equals(status, StringComparison.OrdinalIgnoreCase))
+                        {
+                            tasksFound = true;
+                            if(status == "done")
+                            {
+                                Console.ForegroundColor = ConsoleColor.Green;
+                            }else if(status == "in-progress")
+                            {
+                                Console.ForegroundColor = ConsoleColor.Magenta;
+                            }
+                            Console.WriteLine(task.ToString());
+                            Console.ResetColor();
+                        }
+                    }
+
+                    if (!tasksFound)
+                    {
+                        Console.WriteLine($"No tasks found with status '{status}'");
+                    }
+                }
+            }
+            else
             {
                 Console.WriteLine("No tasks found.");
             }
